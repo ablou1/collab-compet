@@ -1,7 +1,6 @@
 from unityagents import UnityEnvironment
 import matplotlib.pyplot as plt
-from agent import ActorCriticAgent
-from ddpg_multi_agents import Multi_Agents, GaussianNoise
+from agent import MultiActorCriticAgent
 import numpy as np
 from train import ddpg
 from parameters import AgentParameters
@@ -30,8 +29,8 @@ state_size = states.shape[1]
 print('There are {} agents. Each observes a state with length: {}'.format(states.shape[0], state_size))
 
 # Create the agent to train with the parameters to use
-agent_parameters = AgentParameters()
-agent = ActorCriticAgent(state_size=state_size, action_size=action_size, seed=0, agent_parameters=agent_parameters)
+agent_parameters = AgentParameters(action_size)
+agent = MultiActorCriticAgent(state_size=state_size, action_size=action_size, seed=0, agent_parameters=agent_parameters)
 
 # Run the training
 scores_mean_agent, score_mean_last100 = ddpg(

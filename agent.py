@@ -3,18 +3,19 @@ import random
 import copy
 from collections import namedtuple, deque
 from models import Actor, Critic
+from noise import NoiseReducer
 
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-BUFFER_SIZE = int(1e6)  # replay buffer size
+BUFFER_SIZE = int(1e5)  # replay buffer size
 WEIGHT_DECAY = 0        # L2 weight decay
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-class ActorCriticAgent():
+class MultiActorCriticAgent():
     """Interacts with and learns from the environment."""
 
     def __init__(self, state_size, action_size, seed, agent_parameters):
@@ -33,7 +34,7 @@ class ActorCriticAgent():
         self.gamma = agent_parameters.gamma
         self.tau, self.tau_end, self.tau_decay = agent_parameters.tau_param
         self.batch_size = agent_parameters.batch_size
-        self.update_every = 20
+        self.update_every, self.update_count = agent_parameters.model_update
         self.name = f'agent'
 
         lr_actor, lr_critic = agent_parameters.lr_actor_critic
@@ -44,8 +45,8 @@ class ActorCriticAgent():
         self.actor_optimizer = optim.Adam(self.actor_local.parameters(), lr=lr_actor)
 
         # Critic Network (local one and target one)
-        self.critic_local = Critic(state_size, action_size, seed).to(device)
-        self.critic_target = Critic(state_size, action_size, seed).to(device)
+        self.critic_local = Critic(state_size, action_size, seed, fcs1_units=fc1_units, fc2_units=fc2_units).to(device)
+        self.critic_target = Critic(state_size, action_size, seed, fcs1_units=fc1_units, fc2_units=fc2_units).to(device)
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=lr_critic, weight_decay=WEIGHT_DECAY)
 
         # Initialize the target model weights with the local ones (same values)
@@ -53,8 +54,9 @@ class ActorCriticAgent():
         self.critic_target.load_state_dict(self.critic_local.state_dict())
 
         # Noise process
-        factor, min_factor, decay_rate = agent_parameters.noise_param
-        self.noise = GaussianNoise(action_size, factor, min_factor, decay_rate)
+        factor_reduction, min_factor, rate_reduction = agent_parameters.noise_reducer_param
+        self.noise = agent_parameters.noise
+        self.noise_reducer = NoiseReducer(factor_reduction, min_factor, rate_reduction)
 
         # Replay memory
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, agent_parameters.batch_size, seed)
@@ -62,6 +64,7 @@ class ActorCriticAgent():
         self.t_step = 0
 
     def step(self, states, actions, rewards, next_states, dones):
+
         # Save experience in replay memory
         for i in range(len(states)):
             self.memory.add(states[i], actions[i], rewards[i], next_states[i], dones[i])
@@ -71,7 +74,7 @@ class ActorCriticAgent():
         if self.t_step == 0:
             # If enough samples are available in memory, get random subset and learn
             if len(self.memory) > self.batch_size:
-                for _ in range(20):
+                for _ in range(self.update_count):
                     experiences = self.memory.sample()
                     self.learn(experiences)
 
@@ -87,19 +90,19 @@ class ActorCriticAgent():
 
         self.actor_local.eval()
         with torch.no_grad():
-            actions = self.actor_local(states).cpu().data.float().numpy()
+            actions = self.actor_local(states).cpu().data.numpy()
 
         self.actor_local.train()
 
         if add_noise:
-            actions += self.noise.sample()
+            actions += self.noise_reducer.reduce_noise(self.noise.sample())
 
         return np.clip(actions, -1, 1)
 
     def end_episode(self):
         """ Method applied at the end of each episode """
-        self.noise.update_factor()
         self.tau = max(self.tau_end, self.tau*self.tau_decay)
+        self.noise_reducer.update_factor()
 
     def reset(self):
         self.noise.reset()
@@ -156,23 +159,6 @@ class ActorCriticAgent():
             target_param.data.copy_(self.tau*local_param.data + (1.0-self.tau)*target_param.data)
 
 
-class GaussianNoise:
-    def __init__(self, size, factor, min_factor, decay_rate):
-        self.size = size
-        self.factor = factor
-        self.decay_rate = decay_rate
-        self.min_factor = min_factor
-
-    def reset(self):
-        pass
-
-    def sample(self):
-        return np.random.standard_normal(self.size) * self.factor
-
-    def update_factor(self):
-        self.factor = max(self.min_factor, self.factor * self.decay_rate)
-
-
 class ReplayBuffer:
     """Fixed-size buffer to store experience tuples."""
 
@@ -202,7 +188,7 @@ class ReplayBuffer:
         experiences = random.sample(self.memory, k=self.batch_size)
 
         states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
-        actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).long().to(device)
+        actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).float().to(device)
         rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(device)
         next_states = torch.from_numpy(
             np.vstack([e.next_state for e in experiences if e is not None])).float().to(device)
