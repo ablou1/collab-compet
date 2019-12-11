@@ -5,7 +5,7 @@
 First of all, the implementation is based on the udacity implementation of the DDPG algorithm (see the [github](https://github.com/udacity/deep-reinforcement-learning/tree/master/ddpg-pendulum) for more details).
 
 My repository contains the following files :
-> - train_agent.py: this file is dedicated to run a training process for an agent. It loads the environment and then run the training.
+> - train_agent.py: this file is dedicated to run a training process for both agents. It loads the environment and then run the training.
 > - agent.py: this file implements the MultiActorCriticAgent class. It uses the DDPG algorithm (see the next part for more informations)
 > - models.py: this file contains the model used for the actor network and for the critic one.
 > - noise.py: this file contains classes dedicated to handle the noise used in the training process.
@@ -13,7 +13,7 @@ My repository contains the following files :
 > - Training Analysis.ipynb: this notebook is usefull to test training with different parameters and compare all of them
 > - train.py: this file contains the method applied to run the training. You doesn't have to call directly this file. You should use either the *train_agent.py* file or the *Training Analysis.ipynb* notebook.
 
-I decided to use tha same network for the actor for both agent. It's the same for the critic and the replay buffer. The main reason is that both agent has a common goal. Moreover, The states are symmetrical. It means that learning something for one agent is also valid for the other agent. 
+I decided to use tha same actor's network for both agent. It's the same for the critic network and the replay buffer. The main reason is that both agents have a common goal. Moreover, The states are symmetrical. It means that learning something for one agent is also valid for the other agent. 
 
 ## Learning Algorithm
 
@@ -24,7 +24,7 @@ Here you find the main ideas of this algorithm:
 	- The objective of the actor part is to select the action to apply given a specified state.
 	- The objective of the critic part is to estimate the expected return for a given couple (state, action)
 
-As already indicated previously, we use the same actor and the same critic for both agent for two reasons :
+As already indicated previously, we use the same actor and the same critic for both agents for two reasons :
 - They have the same objective
 - The states are "symmetrical" 
 
@@ -83,11 +83,11 @@ Then I tried different sizes of hidden layers. I made the same modification for 
 
 I got the best results with the (256, 512) values (it means a size of 256 for the first hidden layer and 512 for the second one). 
 
-Finally, I also tried different values for the "learning process". The idea is to apply the learning process not every step but every **n** steps. Each time we apply send several random batches from the replay buffer. Here you find the results observed:
+Finally, I also tried different values for the "learning process". The idea is to apply the learning process not every step but every **n** steps. Each time I apply the learning process I send several random batches from the replay buffer. Here you find the results observed:
 
 ![modelUpdate](modelUpdate.PNG)
 
-Applying 5 times the learning processe every 5 steps gave us the best result in our case. 
+Applying 5 times the learning processe every 5 steps gives the best result in our case. 
 
 Finally, these adjustements allowed me to solve the environment in **614 episodes**. The average score from the 615 one to the 714 one is 0.509.
 
@@ -96,7 +96,7 @@ The checkpoint files of this repository correspond to that experiment.
 ## Plot of Rewards
 This graph represents the mean score on the 100 previous episodes of the best result (the value at episode 700 is the mean score of the episodes between 601 and 700). At iteration 714, the target value to solve the environment is reached.
 
-![PlotRewards](SolutionAverage.PNG)
+![PlotRewards](SolutionAvg.PNG)
 
 ## Ideas for Future Work
 In order to improve the agent's performance, I would like to test several ideas.
