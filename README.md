@@ -85,7 +85,7 @@ The train_agent.py file is dedicated to run a single train for a specified agent
 - Linux (x86, headless): "path/to/Tennis_Linux_NoVis/Tennis.x86"
 - Linux (x86_64, headless): "path/to/Tennis_Linux_NoVis/Tennis.x86_64"
 
-	For instance, if you are using a Mac, then you downloaded Banana.app. If this file is in the same folder as the notebook, then the line below should appear as follows:
+	For instance, if you are using a Mac, then you downloaded Tennis.app. If this file is in the same folder as the notebook, then the line below should appear as follows:
 	> env = UnityEnvironment(file_name="Tennis.app")
 
 *example with windows (x86_64) :*
