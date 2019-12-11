@@ -77,16 +77,16 @@ Two choices are available to train an agent inside this repository.
 The train_agent.py file is dedicated to run a single train for a specified agent.
 
 1. Update the file_name of the UnityEnvironment in order to match the location of the Unity environment that you downloaded.
-- Mac: "path/to/Reacher.app"
-- Windows (x86): "path/to/Reacher_Windows_x86/Reacher.exe"
-- Windows (x86_64): "path/to/Reacher_Windows_x86_64/Reacher.exe"
-- Linux (x86): "path/to/Reacher_Linux/Reacher.x86"
-- Linux (x86_64): "path/to/Reacher_Linux/Reacher.x86_64"
-- Linux (x86, headless): "path/to/Reacher_Linux_NoVis/Reacher.x86"
-- Linux (x86_64, headless): "path/to/Reacher_Linux_NoVis/Reacher.x86_64"
+- Mac: "path/to/Tennis.app"
+- Windows (x86): "path/to/Tennis_Windows_x86/Tennis.exe"
+- Windows (x86_64): "path/to/Tennis_Windows_x86_64/Tennis.exe"
+- Linux (x86): "path/to/Tennis_Linux/Tennis.x86"
+- Linux (x86_64): "path/to/Tennis_Linux/Tennis.x86_64"
+- Linux (x86, headless): "path/to/Tennis_Linux_NoVis/Tennis.x86"
+- Linux (x86_64, headless): "path/to/Tennis_Linux_NoVis/Tennis.x86_64"
 
 	For instance, if you are using a Mac, then you downloaded Banana.app. If this file is in the same folder as the notebook, then the line below should appear as follows:
-	> env = UnityEnvironment(file_name="Reacher.app")
+	> env = UnityEnvironment(file_name="Tennis.app")
 
 *example with windows (x86_64) :*
 
